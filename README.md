@@ -6,7 +6,9 @@ My first try in IoT direction of embedded system
 ```C
 void setup() {
   // put your setup code here, to run once:
+  //设定引脚为输出模式
   pinMode(led_pin,OUTPUT);
+  //点亮LED,给引脚赋一个高电平的值
   digitalWrite(led_pin,HIGH);
 
 }
@@ -18,7 +20,7 @@ void loop() {
 
 ```
 ##### 1.2、效果图
-![lit the light](75ff9cfa294e2ac8a44ac08ad4d20ad2_720.png)
+![lit the light](round-1/点亮蓝色灯.png)
 
 #### 2、联网
 ##### 2.1、连接并找出手机热点的IP地址
@@ -57,43 +59,46 @@ void loop() {
 ```
 ##### 2.2、搭建网页服务器，并与点灯操作关联
 ```C
-#include <WiFi.h>      
-#include <WebServer.h> 
+#include <WiFi.h>       // ESP32专用的WiFi库
+#include <WebServer.h>  // ESP32专用的WebServer库
 
+// 替换为正确的Wi-Fi信息
 const char* ssid = "Stars_iPhone";
 const char* password = "ivfusbivm";
 
+// 定义LED引脚
 #define LED_PIN 5
 
+// 在端口80上创建一个服务器对象
 WebServer server(80);
 
+// 处理根路径“/”的函数
 void handleRoot() {
-  String html = "<!DOCTYPE html> <html> <head> <meta charset='UTF-8'> <title>ESP32遥控器</
-title> <style>body{font-family:Arial; text-align:center; margin-top:50px;} button
-{padding:10px 20px; font-size:16px; margin:10px;}</style> </head> <body>";
+  // 构建一个简单的HTML网页，包含两个按钮
+  String html = "<!DOCTYPE html> <html> <head> <meta charset='UTF-8'> <title>ESP32遥控器</title> <style>body{font-family:Arial; text-align:center; margin-top:50px;} button{padding:10px 20px; font-size:16px; margin:10px;}</style> </head> <body>";
   html += "<h1>ESP32 LED遥控器</h1>";
-  html += "<p><a href='/on'><button style='background-color: #4CAF50; color: white;'>开灯</
-button></a></p>";
-  html += "<p><a href='/off'><button style='background-color: #f44336; color: white;'>关灯</
-button></a></p>";
+  html += "<p><a href='/on'><button style='background-color: #4CAF50; color: white;'>开灯</button></a></p>";
+  html += "<p><a href='/off'><button style='background-color: #f44336; color: white;'>关灯</button></a></p>";
   html += "</body> </html>";
   server.send(200, "text/html", html);
 }
 
+// 处理“/on”路径的函数
 void handleOn() {
-  digitalWrite(LED_PIN, HIGH); 
+  digitalWrite(LED_PIN, HIGH);   // 点亮LED
   Serial.println("收到开灯指令");
-  server.send(200, "text/html", "<html><head><meta http-equiv='refresh' content='2;url=/'></
-head><body><p>LED已打开,2秒后返回...</p></body></html>");
+  // 返回一个提示信息，并自动跳转回首页
+  server.send(200, "text/html", "<html><head><meta http-equiv='refresh' content='2;url=/'></head><body><p>LED已打开,2秒后返回...</p></body></html>");
 }
 
+// 处理“/off”路径的函数
 void handleOff() {
-  digitalWrite(LED_PIN, LOW); 
+  digitalWrite(LED_PIN, LOW);   // 熄灭LED
   Serial.println("收到关灯指令");
-  server.send(200, "text/html", "<html><head><meta http-equiv='refresh' content='2;url=/'></
-head><body><p>LED已关闭,2秒后返回...</p></body></html>");
+  server.send(200, "text/html", "<html><head><meta http-equiv='refresh' content='2;url=/'></head><body><p>LED已关闭,2秒后返回...</p></body></html>");
 }
 
+// 处理未找到的路径（404错误）
 void handleNotFound() {
   server.send(404, "text/plain", "404: Not found");
 }
@@ -101,8 +106,9 @@ void handleNotFound() {
 void setup() {
   Serial.begin(115200);
   pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LOW);
+  digitalWrite(LED_PIN, LOW);  // 初始化时确保LED熄灭
 
+// 连接Wi-Fi
   WiFi.begin(ssid, password);
   Serial.print("正在连接WiFi");
   while (WiFi.status() != WL_CONNECTED) {
@@ -133,14 +139,14 @@ void loop() {
 }
 ```
 ##### 2.3、效果图
-<video control the light="1075cc7a57a800b1747c4f49002a0b71.mp4" title="Title"></video>
+![小灯闪烁](round-1/小灯闪烁.mp4)
 
 ### 项目二：点灯、传感器与云平台
 #### 1、使用millis()函数实现DHT11传感器与LED控制指令可以同时工作
 ##### 1.1、硬件连接
-![alt text](ce4104e2bb51cfe15624b35ecdae63f0_720.png)
+![alt text](round-2/硬件连接DHT11和LED.png)
 一并给出DHT11的3个引脚的作用：
-![alt text](53a63fca27a2dad0a444c51f7939c37f.png)
+![alt text](round-2/DHT11引脚说明.png)
 ##### 1.2、代码实现
 ```C
 #include <WiFi.h>
@@ -194,10 +200,8 @@ void handleRoot() {
   // 前端
   html += "<style>";
   html += "body{font-family:Arial; text-align:center; margin:50px; background:#f0f0f0;}";
-  html += ".container{background:white; padding:20px; margin:20px auto; border-radius:8px; 
-max-width:500px;}";
-  html += "button{padding:12px 25px; font-size:16px; border:none; border-radius:5px; 
-color:white; margin:10px;}";
+  html += ".container{background:white; padding:20px; margin:20px auto; border-radius:8px; max-width:500px;}";
+  html += "button{padding:12px 25px; font-size:16px; border:none; border-radius:5px; color:white; margin:10px;}";
   html += ".on-btn{background:#4CAF50;} .off-btn{background:#f44336;}";
   html += ".sensor-value{font-size:22px; font-weight:bold; color:#2c3e50;}";
   html += "</style></head><body>";
@@ -229,16 +233,14 @@ void handleOn() {
   digitalWrite(LED_PIN, HIGH);
   ledState = true;
   Serial.println("收到开灯指令");
-  server.send(200, "text/html", "<html><head><meta http-equiv='refresh' content='2;url=/'></
-head><body><p>LED已打开,2秒后返回...</p></body></html>");
+  server.send(200, "text/html", "<html><head><meta http-equiv='refresh' content='2;url=/'></head><body><p>LED已打开,2秒后返回...</p></body></html>");
 }
 
 void handleOff() {
   digitalWrite(LED_PIN, LOW);
   ledState = false;
   Serial.println("收到关灯指令");
-  server.send(200, "text/html", "<html><head><meta http-equiv='refresh' content='2;url=/'></
-head><body><p>LED已关闭,2秒后返回...</p></body></html>");
+  server.send(200, "text/html", "<html><head><meta http-equiv='refresh' content='2;url=/'></head><body><p>LED已关闭,2秒后返回...</p></body></html>");
 }
 
 void handleNotFound() {
@@ -324,7 +326,7 @@ void loop() {
 ##### 2.2、数据上云
 >新增的这个功能，和之前的LED、DHT11一样，需要：
 1、导入<HTTPClient.h>库
-2、为了后续构建URL，先配置Thingspeak,包括API密匙宇thingspeak官网名
+2、为了后续构建URL，先配置Thingspeak,包括API密匙与thingspeak官网名
 3、定义好thingspeak的初始时间和时间间隔
 4、接下来，是最关键的数据上云函数——data_to_thingspeak()
 
@@ -332,8 +334,7 @@ void loop() {
 4.2、构建thingspeak API的URL,顺序依次为：HTTP协议开头、thingspeak的官方网址(前面已经配置好)、它的数
 据更新接口与API密匙参数、温度数据、湿度数据
 4.3、终于，构建好URL后，可以发送HTTP GET请求
-4.4、问了问AI，它帮我补充了这两个数据上传结果处理与反馈部分，在实际使用场景中可以帮助我们快速知道系
-运行的状态
+4.4、问了问AI，它帮我补充了这两个数据上传结果处理与反馈部分，在实际使用场景中可以帮助我们快速知道系统运行的状态
 4.5、最后，关闭HTTP连接并释放内存！
 
 5、在loop函数中，同样使用if语句，来实现数据每隔30s上传一次
@@ -462,12 +463,9 @@ void handleRoot() {
   String html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>ESP32监控</title>";
   html += "<style>";
   html += "body{font-family:Arial; text-align:center; margin:50px; background:#f0f0f5;}";
-  html += ".container{background:white; padding:20px; margin:20px auto; border-radius:8px; 
-max-width:500px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}";
-  html += "button, .api-btn{padding:12px 25px; font-size:16px; border:none; 
-border-radius:5px; color:white; margin:10px; text-decoration:none; display:inline-block;}";
-  html += ".on-btn{background:#4CAF50;} .off-btn{background:#f44336;} .api-btn
-{background:#2196F3;}";
+  html += ".container{background:white; padding:20px; margin:20px auto; border-radius:8px; max-width:500px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}";
+  html += "button, .api-btn{padding:12px 25px; font-size:16px; border:none; border-radius:5px; color:white; margin:10px; text-decoration:none; display:inline-block;}";
+  html += ".on-btn{background:#4CAF50;} .off-btn{background:#f44336;} .api-btn{background:#2196F3;}";
   html += ".sensor-value{font-size:22px; font-weight:bold; color:#2c3e50;}";
   html += ".api-section{background:#e3f2fd; padding:15px; margin:15px 0; border-radius:5px;}";
   html += "</style></head><body>";
@@ -495,8 +493,7 @@ border-radius:5px; color:white; margin:10px; text-decoration:none; display:inlin
   html += "<div class='api-section'>";
   html += "<p>获取JSON格式数据:</p>";
   html += "<a href='/json' class='api-btn'>访问 /json API</a>";
-  html += "<p><small>返回格式: {\"temperature\":25.5, \"humidity\":60.2, 
-\"led_status\":\"ON\"}</small></p>";
+  html += "<p><small>返回格式: {\"temperature\":25.5, \"humidity\":60.2, \"led_status\":\"ON\"}</small></p>";
   html += "</div>";
   html += "<p><small>API地址: http://" + WiFi.localIP().toString() + "/json</small></p>";
   html += "</div>";
@@ -510,16 +507,14 @@ void handleOn() {
   digitalWrite(LED_PIN, HIGH);
   ledState = true;
   Serial.println("收到开灯指令");
-  server.send(200, "text/html", "<html><head><meta http-equiv='refresh' content='2;url=/'></
-head><body><p>LED已打开,2秒后返回...</p></body></html>");
+  server.send(200, "text/html", "<html><head><meta http-equiv='refresh' content='2;url=/'></head><body><p>LED已打开,2秒后返回...</p></body></html>");
 }
 
 void handleOff() {
   digitalWrite(LED_PIN, LOW);
   ledState = false;
   Serial.println("收到关灯指令");
-  server.send(200, "text/html", "<html><head><meta http-equiv='refresh' content='2;url=/'></
-head><body><p>LED已关闭,2秒后返回...</p></body></html>");
+  server.send(200, "text/html", "<html><head><meta http-equiv='refresh' content='2;url=/'></head><body><p>LED已关闭,2秒后返回...</p></body></html>");
 }
 
 void handleNotFound() {
